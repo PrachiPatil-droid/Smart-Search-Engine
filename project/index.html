@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Search Engine (Trie)</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 40px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 10px;
+    }
+
+    li {
+      padding: 6px;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Smart Search Engine</h2>
+
+    <input type="text" id="search" placeholder="Type to search..." />
+
+    <button onclick="insertWord()">Insert Word</button>
+    <button onclick="deleteWord()">Delete Word</button>
+
+    <ul id="suggestions"></ul>
+  </div>
+
+  <script>
+    /*
+      Each TrieNode stores:
+      - children: next characters
+      - isTerminal: does a word end here
+      - freq: how many times the word was inserted
+    */
+    class TrieNode {
+      constructor() {
+        this.children = {};
+        this.isTerminal = false;
+        this.freq = 0;
+      }
+    }
+
+    /*
+      Trie data structure implementation
+    */
+    class Trie {
+      constructor() {
+        this.root = new TrieNode();
+      }
+
+      // Insert a word into the Trie
+      insert(word) {
+        let node = this.root;
+
+        for (let ch of word) {
+          if (!node.children[ch]) {
+            node.children[ch] = new TrieNode();
+          }
+          node = node.children[ch];
+        }
+
+        node.isTerminal = true;
+        node.freq++;
+      }
+
+      // Delete a word from the Trie
+      delete(word) {
+        this._deleteUtil(this.root, word, 0);
+      }
+
+      _deleteUtil(node, word, idx) {
+        if (!node) return false;
+
+        if (idx === word.length) {
+          if (!node.isTerminal) return false;
+          node.isTerminal = false;
+          node.freq = 0;
+          return Object.keys(node.children).length === 0;
+        }
+
+        let ch = word[idx];
+        if (!node.children[ch]) return false;
+
+        let shouldDeleteChild =
+          this._deleteUtil(node.children[ch], word, idx + 1);
+
+        if (shouldDeleteChild) {
+          delete node.children[ch];
+          return !node.isTerminal &&
+                 Object.keys(node.children).length === 0;
+        }
+
+        return false;
+      }
+
+      // Return all words starting with given prefix
+      autoComplete(prefix) {
+        let node = this.root;
+
+        for (let ch of prefix) {
+          if (!node.children[ch]) return [];
+          node = node.children[ch];
+        }
+
+        let result = [];
+        this._dfs(node, prefix, result);
+
+        // sort by frequency (higher first)
+        result.sort((a, b) => b.freq - a.freq);
+        return result;
+      }
+
+      // DFS traversal from a given Trie node
+      _dfs(node, curr, result) {
+        if (node.isTerminal) {
+          result.push({ word: curr, freq: node.freq });
+        }
+
+        for (let ch in node.children) {
+          this._dfs(node.children[ch], curr + ch, result);
+        }
+      }
+    }
+
+    // Create an empty Trie
+    const trie = new Trie();
+
+    // Access HTML elements
+    const input = document.getElementById('search');
+    const list = document.getElementById('suggestions');
+
+    // Run autocomplete on every keystroke
+    input.addEventListener('input', () => {
+      list.innerHTML = '';
+
+      let prefix = input.value.toLowerCase();
+      if (!prefix) return;
+
+      let results = trie.autoComplete(prefix);
+
+      results.forEach(item => {
+        let li = document.createElement('li');
+        li.textContent = `${item.word} (freq: ${item.freq})`;
+        list.appendChild(li);
+      });
+    });
+
+    // Insert word from input box
+    function insertWord() {
+      let word = input.value.toLowerCase();
+      if (!word) return;
+
+      trie.insert(word);
+      alert("Inserted: " + word);
+    }
+
+    // Delete word from Trie
+    function deleteWord() {
+      let word = input.value.toLowerCase();
+      if (!word) return;
+
+      trie.delete(word);
+      alert("Deleted: " + word);
+    }
+  </script>
+</body>
+</html>
