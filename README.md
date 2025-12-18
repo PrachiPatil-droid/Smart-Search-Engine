@@ -17,16 +17,12 @@ Smart Search Engine implemented using Trie in C++. Supports prefix search, auto-
 
 
 ## Project Structure
-
-smart-search-engine-trie/
-├── src/                # Optional if you also have C++ code
-│   ├── trie.h          # C++ Trie class (if exists)
-│   ├── trie.cpp        # C++ Trie implementation
-│   └── main.cpp        # C++ main/test program
-├── demo/               # Contains your HTML + JS demo
-│   └── index.html      # The code you just shared
-├── README.md           # Project explanation
-└── .gitignore
+main (branch)
+├── c++_code/
+│   └── code.cpp
+├── project/
+│   └── index.html
+└── README.md
 
 
 ## How to Run
